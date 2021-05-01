@@ -55,13 +55,26 @@ class Cashflow:
 
         column = input("Podaj kolumnę, której wartość ma być zaktualizowana: ")
 
-        if column not in ("title", "category", "value"):
+        columns = {"title": "tytuł", "category": "kategoria", "value": "wartość"}
+        found = False
+        for key, val in columns.items():
+            if key == column or val == column:
+                column = key
+                found = True
+                break
+        if not found:
             return print("Błędna kolumna.")
 
         new_value = input("Podaj nową wartość: ")
 
         if column == "category" and new_value not in ("transfer", "wycofanie", "zysk kapitałowy"):
             return print("Błędna kategoria.")
+
+        if column == "value":
+            try:
+                new_value = int(new_value)
+            except ValueError:
+                return print("Błędny format liczby.")
 
         sql_update = "UPDATE cashflow SET " + column + " = ? WHERE rowid = ?"
         connection = self.connection
@@ -100,7 +113,7 @@ class Cashflow:
                 cursor = connection.execute(sql_select, (datefrom,))
 
         for row in cursor:
-            print(row[0], row[1], row[2], row[3], row[3])
+            print(row[0], row[1], row[2], row[3], row[4])
 
     def count_balance(self):
         connection = self.connection
@@ -139,12 +152,18 @@ class Cashflow:
             for i in range(1, 13):
                 if i not in months.keys():
                     cashflow_dict[year][i] = 0.0
-            months_list = list(map(lambda x: x[0], sorted(months.items())))
-            growth_abs = [months_list[i]-months_list[i-1] for i in range(0, len(months_list)+1) if i > 1]
+                if year == datetime.datetime.now().year and i == datetime.datetime.now().month:
+                    break
+            months_list = list(map(lambda x: x[1], sorted(months.items())))
+            growth_abs = [months_list[i]-months_list[i-1] for i in range(0, len(months_list)) if i > 0]
             avg_growth_abs = round(sum(growth_abs) / len(growth_abs), 2)
 
-            growth_perc = [(months_list[i]-months_list[i-1])/months_list[i-1]*100 for i in range(0, len(months_list)+1) if i > 1]
-            avg_growth_perc = round(sum(growth_perc) / len(growth_perc), 2)
+            zeromonths = [i for i in months_list if i > 0]
+            growth_perc = [(zeromonths[i]-zeromonths[i-1])/zeromonths[i-1]*100 for i in range(0, len(zeromonths)) if i > 0]
+            if growth_perc != []:
+                avg_growth_perc = round(sum(growth_perc) / len(growth_perc), 2)
+            else:
+                avg_growth_perc = 0.0
             year_dict[year] = (sum(months_list), avg_growth_abs, avg_growth_perc)
 
         year_tuples = sorted(year_dict.items())

@@ -150,7 +150,7 @@ class DBQueries:
                             elif new_value == "n":
                                 new_value = False
                             else:
-                                return print("błędna wartość logiczna w polu", val[0])
+                                return print("Błędna wartość logiczna w polu", val[0])
         if not found:
             return print("Błędna nazwa kolumny.")
 

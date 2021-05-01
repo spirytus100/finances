@@ -8,6 +8,7 @@ from sys import argv
 
 # todo funkcja aktualizująca i przetwarzająca plik inflacji
 # todo funkcja pobierająca kursy akcji
+# todo funkcja sprawdzająca upływający termin inwestycji (obligacji)
 
 if len(argv) == 1 or len(argv) == 2 and argv[1] == "expenses":
     budget_list = ef.show_budget()
@@ -262,6 +263,10 @@ while True:
     elif len(argv) == 2 and argv[1] == "cashflow":
         savings = Cashflow(connection)
         mode = input("Wpisz polecenie: ")
+        if mode == "q":
+            print("Dziękuję za skorzystanie z programu.")
+            break
+
         mode = mode.split()
         if len(mode) == 1:
             if mode[0] == "add":
@@ -275,6 +280,8 @@ while True:
                 print("Saldo wynosi", saldo, "zł.")
             elif mode[0] == "analyze":
                 savings.analyze_cashflow()
+            elif mode[0] == "cash":
+                savings.count_cash()
         elif len(mode) == 2:
             if mode[0] == "update":
                 idnum = mode[1]

@@ -104,6 +104,9 @@ class Investment:
             sold_values = (self.name, self.investment_id, self.category, self.financial_institution, self.buy_date,
                            int(amount), self.buy_price, self.buy_commision, self.retirement, dt_sell_date, floats[0],
                            floats[1], profit, True)
+            answer = input("Czy zapisać transakcję sprzedaży (y/n): ")
+            if answer != "y":
+                return
             try:
                 connection.execute(sql_update, (amount_remains, idnum))
                 connection.commit()
@@ -119,6 +122,9 @@ class Investment:
             profit = (amount * floats[0]) - (self.amount * self.buy_price + self.buy_commision + floats[1])
             sql_update = "UPDATE investments SET sell_date = ?, sell_price = ?, sell_comission = ?, profit = ?, is_over = ? WHERE rowid = ?"
             sold_values = (sell_date, floats[0], floats[1], float(profit), True, idnum)
+            answer = input("Czy zapisać transakcję sprzedaży (y/n): ")
+            if answer != "y":
+                return
 
             try:
                 connection.execute(sql_update, sold_values)

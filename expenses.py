@@ -246,7 +246,8 @@ while True:
         elif split_mode[0] == "count" and split_mode[1] == "interest":
             bond_name = " ".join(split_mode[2:])
             interest = db_queries.count_bond_interest(bond_name)
-            print("Dla instrumentu", bond_name, "suma wpłaconych odsetek wynosi", interest, "zł.")
+            if interest:
+                print("Dla instrumentu", bond_name, "suma wpłaconych odsetek wynosi", interest, "zł.")
 
         elif split_mode[0] == "absolute" and split_mode[1] == "profit":
             category = " ".join(split_mode[2:])

@@ -28,7 +28,7 @@ class DBQueries:
         sql_select = "SELECT * FROM investments WHERE rowid = ?"
         cursor = connection.execute(sql_select, (idnum,))
         record = cursor.fetchone()
-        if not record:
+        if record == []:
             print("Podany numer id nie istnieje.")
         else:
             self.print_investment_details(record)
@@ -76,7 +76,7 @@ class DBQueries:
             else:
                 bools.append(el)
 
-        interest = 0.0
+        invested = record[5] * record[6] + record[7] + record[11]
         print("\n")
         print("Nazwa instrumentu:", record[0])
         print("Kategoria inwestycyjna:", record[2])
@@ -94,11 +94,12 @@ class DBQueries:
             print("Odsetki:", interest)
         if bools[1] == "Tak":
             print("Zysk:", record[12])
-            print("Zysk %:", round((record[12] / (record[5] * record[6] + record[7])) * 100, 2))
+            print("Zysk %:", round((record[12] / invested) * 100, 2))
             td = record[9] - record[4]
             print("Zysk w skali roku:", round(record[12] / (td.days / 365), 2))
-            print("Zysk z uwzględnieniem inflacji:", self.count_inflation(record[4], record[9], record[12]))
+            print("Zysk % z uwzględnieniem inflacji:", round(self.count_inflation(record[4], record[9], record[12])/invested*100, 2))
         print("Zakończona:", bools[1])
+        print(record[12])
 
     def find_investments_by_category(self, category, all=False):
         connection = self.connection
@@ -192,7 +193,7 @@ class DBQueries:
         connection = self.connection
         sql_select = "SELECT date, interest FROM interest WHERE name = ?"
         cursor = connection.execute(sql_select, (instrument_name,))
-        if cursor:
+        if cursor != []:
             interest_sum = 0.0
             for row in cursor:
                 print(row[0], row[1])
@@ -200,6 +201,7 @@ class DBQueries:
             return interest_sum
         else:
             print("Dla podanego instrumentu nie znaleziono odsetek w bazie danych.")
+            return False
 
     def count_average_absolute_profit_by_category(self, category):
         connection = self.connection
@@ -274,11 +276,16 @@ class DBQueries:
             csv_reader = csv.reader(fo, delimiter=";")
             year_inflation = []
             remain_inflation = []
-            for row in csv_reader:
-                if sell_date.year >= int(row[0]) > buy_date.year and int(row[1]) == buy_date.month:
-                    year_inflation.append(row[2])
-                if int(row[0]) == sell_date.year and buy_date.month < int(row[1]) <= sell_date.month:
-                    remain_inflation.append(int(row[2]))
+            for i, row in enumerate(csv_reader):
+                if i > 0:
+                    if sell_date.month < buy_date.month:
+                        if sell_date.year > int(row[0]) > buy_date.year and int(row[1]) == buy_date.month:
+                            year_inflation.append(float(row[2].replace(",", ".")))
+                        if int(row[0]) == sell_date.year and buy_date.month >= int(row[1]) > sell_date.month:
+                            remain_inflation.append(float(row[2].replace(",", ".")))
+                    else:
+                        if sell_date.year >= int(row[0]) > buy_date.year and int(row[1]) == buy_date.month:
+                            year_inflation.append(float(row[2].replace(",", ".")))
 
         total_y = 1
         for i in range(0, len(year_inflation)):
@@ -287,8 +294,9 @@ class DBQueries:
 
         total_r = 0
         sum_weight = 0
+        print(remain_inflation)
         for i in range(1, len(remain_inflation)+1):
-            total_r = total_r + remain_inflation[i] * i
+            total_r = total_r + remain_inflation[i-1] * i
             sum_weight = sum_weight + i
         exp_avg = (total_r / sum_weight - 100) * len(remain_inflation) / 12 / 100
 

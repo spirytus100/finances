@@ -99,7 +99,6 @@ class DBQueries:
             print("Zysk w skali roku:", round(record[12] / (td.days / 365), 2))
             print("Zysk % z uwzględnieniem inflacji:", round(self.count_inflation(record[4], record[9], record[12])/invested*100, 2))
         print("Zakończona:", bools[1])
-        print(record[12])
 
     def find_investments_by_category(self, category, all=False):
         connection = self.connection
@@ -271,7 +270,6 @@ class DBQueries:
             print("Brak zakończonych inwestycji.")
 
     def count_inflation(self, buy_date, sell_date, profit):
-
         with open("inflacja_gus.csv", "r") as fo:
             csv_reader = csv.reader(fo, delimiter=";")
             year_inflation = []
@@ -294,7 +292,6 @@ class DBQueries:
 
         total_r = 0
         sum_weight = 0
-        print(remain_inflation)
         for i in range(1, len(remain_inflation)+1):
             total_r = total_r + remain_inflation[i-1] * i
             sum_weight = sum_weight + i

@@ -120,7 +120,7 @@ class Cashflow:
         sql_select = "SELECT value FROM cashflow"
         cursor = connection.execute(sql_select)
         values = set(map(lambda x: x[0], list(cursor)))
-        saldo = round(sum(values), 2)
+        saldo = round(sum(values) + 53598.24, 2)
         return saldo
 
     def count_cash(self):

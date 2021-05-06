@@ -30,8 +30,6 @@ class Investment:
 
         categories = ("akcje polskie", "akcje zagraniczne", "obligacje skarbowe polskie", "obligacje korporacyjne polskie",
                     "obligacje zagraniczne", "kryptowaluty", "surowce", "depozyty")
-        financial_institutions = ("DM mBank", "BM PKO Bank Polski", "BM Santander", "Degiro", "XTB", "mBank", "Getin Bank",
-                                  "Idea Bank")
 
         if self.category not in categories:
             ok = False

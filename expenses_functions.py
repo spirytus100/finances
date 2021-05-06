@@ -406,10 +406,5 @@ def append_to_budget_results():
 
     print("Budżet został rozliczony.")
 
-def read_help():
-    with open("expenses_help.txt", "r") as fo:
-        lines = fo.readlines()
-        for line in lines:
-            print(line.strip())
 
 

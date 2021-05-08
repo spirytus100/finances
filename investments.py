@@ -119,7 +119,7 @@ class Investment:
         elif amount == self.amount:
             profit = (amount * floats[0]) - (self.amount * self.buy_price + self.buy_commision + floats[1])
             sql_update = "UPDATE investments SET sell_date = ?, sell_price = ?, sell_comission = ?, profit = ?, is_over = ? WHERE rowid = ?"
-            sold_values = (sell_date, floats[0], floats[1], float(profit), True, idnum)
+            sold_values = (dt_sell_date, floats[0], floats[1], float(profit), True, idnum)
             answer = input("Czy zapisać transakcję sprzedaży (y/n): ")
             if answer != "y":
                 return
@@ -177,7 +177,7 @@ def get_user_input_sell():
 
 
 def add_interest(connection, data_tuple):
-    if data_tuple[0] is None:
+    if not data_tuple:
         return
     name = data_tuple[0]
     investment_id = data_tuple[1]
@@ -189,12 +189,16 @@ def add_interest(connection, data_tuple):
         interest = float(interest)
     except ValueError:
         return print("Błędny format liczby.")
-    else:
-        values = (name, investment_id, category, date, interest)
 
     sql_insert = "INSERT INTO interest VALUES (?, ?, ?, ?, ?)"
+    values = (name, investment_id, category, date, interest)
+
+    sql_cashflow_insert = "INSERT INTO cashflow VALUES (?, ?, ?, ?)"
+    cashflow_values = (date, "odsetki " + name, "zysk kapitałowy", interest)
     try:
         connection.execute(sql_insert, values)
+        connection.commit()
+        connection.execute(sql_cashflow_insert, cashflow_values)
         connection.commit()
     except Error:
         print("Błąd zapisu do bazy danych.")

@@ -1,6 +1,7 @@
 from sqlite3 import Error
 import csv
 import datetime
+import cashflow
 
 # todo funkcja formatująca wyniki z bazy danych wyświetlane w oknie wiersza poleceń
 
@@ -23,13 +24,29 @@ class DBQueries:
         self.financial_institutions = ("DM mBank", "BM PKO Bank Polski", "BM Santander", "Degiro", "XTB", "mBank",
                                        "Getin Bank", "Idea Bank")
 
+    def check_id(self, idnum, table):
+        try:
+            idnum = int(idnum)
+        except ValueError:
+            return False
+        else:
+            connection = self.connection
+            sql_select = "SELECT rowid FROM " + table + " WHERE rowid = ?"
+            cursor = connection.execute(sql_select, (idnum,))
+            record = cursor.fetchone()
+            if not record:
+                print("Podany numer id nie istnieje.")
+                return False
+            return idnum
+
     def find_investment_by_id(self, idnum):
         connection = self.connection
         sql_select = "SELECT * FROM investments WHERE rowid = ?"
         cursor = connection.execute(sql_select, (idnum,))
         record = cursor.fetchone()
-        if record == []:
+        if not record:
             print("Podany numer id nie istnieje.")
+            return False
         else:
             self.print_investment_details(record)
             return record
@@ -67,6 +84,8 @@ class DBQueries:
         return name, investment_id, category
 
     def print_investment_details(self, record):
+        if not record:
+            return
         bools = []
         for el in (record[8], record[13]):
             if el == 1:
@@ -103,15 +122,16 @@ class DBQueries:
     def find_investments_by_category(self, category, all=False):
         connection = self.connection
         if not all:
-            sql_select = "SELECT rowid, name FROM investments WHERE category = ?"
+            sql_select = "SELECT rowid, name, buy_date, amount, buy_price FROM investments WHERE category = ?"
             values = (category,)
         else:
             sql_select = "SELECT rowid, name FROM investments WHERE category = ? AND is_over = ?"
             values = (category, 1)
         cursor = connection.execute(sql_select, values)
         #if cursor:
+        print("Niezakończone inwestycje z kategorii " + category +":")
         for row in cursor:
-            print(row[0], row[1])
+            print(row[0], row[1], row[2].strftime("%d-%m-%Y"), row[3], row[4])
         #else:
             #print("Dla podanej kategorii brak rekordów w bazie danych.")
 
@@ -190,17 +210,29 @@ class DBQueries:
 
     def count_bond_interest(self, instrument_name):
         connection = self.connection
-        sql_select = "SELECT date, interest FROM interest WHERE name = ?"
+        sql_select = "SELECT rowid, date, interest FROM interest WHERE name = ?"
         cursor = connection.execute(sql_select, (instrument_name,))
-        if cursor != []:
+        if cursor:
             interest_sum = 0.0
             for row in cursor:
-                print(row[0], row[1])
-                interest_sum += row[1]
+                print(row[0], row[1], row[2])
+                interest_sum += row[2]
             return interest_sum
         else:
             print("Dla podanego instrumentu nie znaleziono odsetek w bazie danych.")
             return False
+
+    def delete_interest(self, idnum):
+        idnum = self.check_id(idnum, "interest")
+        if not idnum:
+            return
+        connection = self.connection
+        sql_delete = "DELETE FROM interest WHERE rowid = ?"
+        answer = input("Czy na pewno chcesz usunąć podany rekord (y/n): ")
+        if answer != "y":
+            return
+        connection.execute(sql_delete, (idnum,))
+        print("Usunięto rekord o numerze id", idnum)
 
     def count_average_absolute_profit_by_category(self, category):
         connection = self.connection
@@ -300,6 +332,38 @@ class DBQueries:
         profit_after_inflation = profit - total_y * profit - (exp_avg * (profit - total_y * profit))
         profit_after_inflation = round(profit_after_inflation, 2)
         return profit_after_inflation
+
+    def show_investment_records(self, name):
+        connection = self.connection
+        sql_select = "SELECT rowid, name, buy_date, amount, buy_price, sell_date, sell_price, profit, is_over FROM " \
+                     "investments WHERE name = ?"
+        cursor = connection.execute(sql_select, (name,))
+        if cursor != []:
+            for row in cursor:
+                if row[8]:
+                    print(row[0], row[1], row[3], row[5].strftime("%d-%m-%Y"), row[6], row[7], "sprzedaż")
+                else:
+                    print(row[0], row[1], row[2].strftime("%d-%m-%Y"), row[3], row[4], "kupno")
+
+    def count_categories_involvement(self):
+        connection = self.connection
+        sql_select = "SELECT category, amount, buy_price, buy_comission FROM investments WHERE is_over = 0"
+        cursor = connection.execute(sql_select)
+        shares = {}
+        involvement_sum = 0.0
+        for row in cursor:
+            involvement = row[1]*row[2]+row[3]
+            involvement_sum += involvement
+            if row[0] not in shares.keys():
+                shares[row[0]] = involvement
+            else:
+                shares[row[0]] += involvement
+        cashinst = cashflow.Cashflow(connection)
+        cash = cashinst.count_cash()
+        for key, val in shares.items():
+            print(key, (35-len(key))*" ", val, "zł", (10-len(str(val)))*" ", round(val/involvement_sum*100, 2), "%")
+        print("Kapitał pracujący:", involvement_sum, "zł")
+
 
 
 

@@ -9,6 +9,7 @@ from sys import argv
 # todo funkcja aktualizująca i przetwarzająca plik inflacji
 # todo funkcja pobierająca kursy akcji
 # todo funkcja sprawdzająca upływający termin inwestycji (obligacji)
+# todo opcja usunięcia jednocześnie wszystkich rekordów związanych z daną inwestycją (+ odsetek przy obligacjach)
 
 def read_help(filename):
     with open(filename, "r") as fo:
@@ -177,6 +178,7 @@ while True:
     elif len(argv) == 2 and argv[1] == "investments":
         db_queries = invdb.DBQueries(connection)
         mode = input("Wpisz polecenie: ")
+
         if mode == "q":
             print("Dziękuję za skorzystanie z programu.")
             break
@@ -189,8 +191,8 @@ while True:
 
         if len(split_mode) == 1:
             if split_mode[0] == "interest":
-                bond_name = input("Podaj nazwę obligacji: ")
-                data_tuple = db_queries.find_investment_by_name(bond_name)
+                idnum = input("Podaj numer id obligacji: ")
+                data_tuple = db_queries.find_investment_by_id(idnum)
                 investments.add_interest(connection, data_tuple)
 
             elif split_mode[0] == "buy":
@@ -237,6 +239,12 @@ while True:
             elif split_mode[0] == "help":
                 read_help("investments_help.txt")
 
+            elif split_mode[0] == "involvement":
+                db_queries.count_categories_involvement()
+
+            else:
+                db_queries.show_investment_records(mode)
+
         elif len(split_mode) == 2:
             if split_mode[0] == "id":
                 idnum = split_mode[1]
@@ -253,12 +261,18 @@ while True:
             elif split_mode[0] == "delete":
                 idnum = split_mode[1]
                 db_queries.delete_record(idnum)
+            else:
+                db_queries.show_investment_records(mode)
 
         elif split_mode[0] == "count" and split_mode[1] == "interest":
             bond_name = " ".join(split_mode[2:])
             interest = db_queries.count_bond_interest(bond_name)
             if interest:
                 print("Dla instrumentu", bond_name, "suma wpłaconych odsetek wynosi", interest, "zł.")
+
+        elif split_mode[0] == "delete" and split_mode[1] == "interest":
+            idnum = input("Podaj numer id rekordu: ")
+            db_queries.delete_interest(idnum)
 
         elif split_mode[0] == "absolute" and split_mode[1] == "profit":
             category = " ".join(split_mode[2:])
@@ -271,6 +285,8 @@ while True:
         elif split_mode[0] == "average" and split_mode[1] == "profit":
             parameter = " ".join(split_mode[2:])
             db_queries.count_average_profit(parameter)
+        else:
+            db_queries.show_investment_records(mode)
 
     elif len(argv) == 2 and argv[1] == "cashflow":
         savings = Cashflow(connection)

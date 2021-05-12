@@ -9,7 +9,7 @@ class Cashflow:
     def get_input(self):
         title = input("Podaj tytuł pozycji: ")
         category = input("Podaj kategorię: ")
-        if category not in ("transfer", "wycofanie", "zysk kapitałowy"):
+        if category not in ("oszczędności", "wycofanie", "zysk kapitałowy"):
             print("Błędna kategoria.")
             return False
         value = input("Podaj kwotę: ")
@@ -67,7 +67,7 @@ class Cashflow:
 
         new_value = input("Podaj nową wartość: ")
 
-        if column == "category" and new_value not in ("transfer", "wycofanie", "zysk kapitałowy"):
+        if column == "category" and new_value not in ("oszczędności", "wycofanie", "zysk kapitałowy"):
             return print("Błędna kategoria.")
 
         if column == "value":

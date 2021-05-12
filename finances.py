@@ -5,11 +5,10 @@ import investments
 import investments_dbqueries as invdb
 from cashflow import Cashflow
 from sys import argv
+import finances_downloads
 
-# todo funkcja aktualizująca i przetwarzająca plik inflacji
-# todo funkcja pobierająca kursy akcji
+
 # todo funkcja sprawdzająca upływający termin inwestycji (obligacji)
-# todo opcja usunięcia jednocześnie wszystkich rekordów związanych z daną inwestycją (+ odsetek przy obligacjach)
 
 def read_help(filename):
     with open(filename, "r") as fo:
@@ -176,6 +175,7 @@ while True:
             print("Błędne polecenie.")
 
     elif len(argv) == 2 and argv[1] == "investments":
+        finances_downloads.get_inflation_stats()
         db_queries = invdb.DBQueries(connection)
         mode = input("Wpisz polecenie: ")
 
@@ -241,6 +241,9 @@ while True:
 
             elif split_mode[0] == "involvement":
                 db_queries.count_categories_involvement()
+
+            elif split_mode[0] == "quotes":
+                finances_downloads.get_quotes()
 
             else:
                 db_queries.show_investment_records(mode)

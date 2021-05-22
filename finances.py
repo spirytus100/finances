@@ -240,7 +240,7 @@ while True:
                 read_help("investments_help.txt")
 
             elif split_mode[0] == "involvement":
-                db_queries.count_categories_involvement()
+                db_queries.count_categories_involvement(chart=False)
 
             elif split_mode[0] == "quotes":
                 finances_downloads.get_quotes()
@@ -264,6 +264,9 @@ while True:
             elif split_mode[0] == "delete":
                 idnum = split_mode[1]
                 db_queries.delete_record(idnum)
+
+            elif split_mode[0] == "involvement" and split_mode[1] == "chart":
+                db_queries.count_categories_involvement(chart=True)
             else:
                 db_queries.show_investment_records(mode)
 

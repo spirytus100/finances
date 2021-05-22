@@ -2,6 +2,7 @@ from sqlite3 import Error
 import csv
 import datetime
 import cashflow
+import matplotlib.pyplot as plt
 
 # todo funkcja formatująca wyniki z bazy danych wyświetlane w oknie wiersza poleceń
 
@@ -345,7 +346,7 @@ class DBQueries:
                 else:
                     print(row[0], row[1], row[2].strftime("%d-%m-%Y"), row[3], row[4], "kupno")
 
-    def count_categories_involvement(self):
+    def count_categories_involvement(self, chart=False):
         connection = self.connection
         sql_select = "SELECT category, amount, buy_price, buy_comission FROM investments WHERE is_over = 0"
         cursor = connection.execute(sql_select)
@@ -363,6 +364,21 @@ class DBQueries:
         for key, val in shares.items():
             print(key, (35-len(key))*" ", val, "zł", (10-len(str(val)))*" ", round(val/involvement_sum*100, 2), "%")
         print("Kapitał pracujący:", involvement_sum, "zł")
+
+        if chart:
+            categories = []
+            sizes = []
+            for key, val in shares.items():
+                categories.append(key)
+                sizes.append(val)
+
+            fig1, ax1 = plt.subplots()
+            ax1.pie(sizes, labels=categories, autopct='%1.1f%%')
+            ax1.axis("equal")
+            plt.show()
+
+
+
 
 
 

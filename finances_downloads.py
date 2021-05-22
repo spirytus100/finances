@@ -39,7 +39,7 @@ def get_quotes():
             start_price = 456.25
         elif key == "Srebro":
             name = "VZLC GR ETF"
-            start_price = 29.04
+            start_price = 29.04*4.49
         else:
             name = key
         cursor = connection.execute(sql_select, (name,))

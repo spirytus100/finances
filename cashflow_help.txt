@@ -1,0 +1,7 @@
+add - uruchamia proces dodawania pozycji
+show <rok> - wyświetla wszystkie pozycje, lub od podanego roku wzwyż
+saldo - oblicza saldo przepływów pieniężnych
+analyze - analizuje przepływy pieniężne
+cash - oblicza ilość wolnej (niezainwestowanej) gotówki
+update <nr id> - uruchamia proces aktualizacji danego rekordu
+delete <nr id> - usuwa dany rekord

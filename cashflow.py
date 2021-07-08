@@ -129,7 +129,7 @@ class Cashflow:
         cursor = connection.execute(sql_inv_select)
         sum_investment = sum(map(lambda x: x[0], list(cursor)))
         cash = self.count_balance() - sum_investment
-        print("Wolna gotówka: " + str(cash) + " zł")
+        print("Wolna gotówka:", round(cash, 2), "zł")
         return cash
 
     def analyze_cashflow(self):

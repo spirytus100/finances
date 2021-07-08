@@ -3,6 +3,7 @@ import csv
 import datetime
 import cashflow
 import matplotlib.pyplot as plt
+import texttable
 
 # todo funkcja formatująca wyniki z bazy danych wyświetlane w oknie wiersza poleceń
 
@@ -113,10 +114,11 @@ class DBQueries:
             interest = self.count_bond_interest(record[0])
             print("Odsetki:", interest)
         if bools[1] == "Tak":
-            print("Zysk:", record[12])
+            print("Zysk:", round(record[12], 2), "zł")
             print("Zysk %:", round((record[12] / invested) * 100, 2))
             td = record[9] - record[4]
-            print("Zysk w skali roku:", round(record[12] / (td.days / 365), 2))
+            print("Zysk w skali roku:", round(record[12] / (td.days / 365), 2), "zł")
+            print("Zysk z uwzględnieniem inflacji:", round(self.count_inflation(record[4], record[9], record[12])), "zł")
             print("Zysk % z uwzględnieniem inflacji:", round(self.count_inflation(record[4], record[9], record[12])/invested*100, 2))
         print("Zakończona:", bools[1])
 
@@ -131,10 +133,12 @@ class DBQueries:
         cursor = connection.execute(sql_select, values)
         #if cursor:
         print("Niezakończone inwestycje z kategorii " + category +":")
-        for row in cursor:
-            print(row[0], row[1], row[2].strftime("%d-%m-%Y"), row[3], row[4])
-        #else:
-            #print("Dla podanej kategorii brak rekordów w bazie danych.")
+        headers = [["id", "nazwa", "data kupna", "ilość", "cena"]]
+        inv_list = headers + list(cursor)
+        inv_table = texttable.Texttable(max_width=0)
+        inv_table.add_rows(inv_list)
+        print(inv_table.draw())
+
 
     def update_record(self, idnum):
         column = input("Podaj kolumnę, która ma być aktualizowana: ")
@@ -310,7 +314,7 @@ class DBQueries:
             for i, row in enumerate(csv_reader):
                 if i > 0:
                     if sell_date.month < buy_date.month:
-                        if sell_date.year > int(row[0]) > buy_date.year and int(row[1]) == buy_date.month:
+                        if sell_date.year >= int(row[0]) > buy_date.year and int(row[1]) == buy_date.month:
                             year_inflation.append(float(row[2].replace(",", ".")))
                         if int(row[0]) == sell_date.year and buy_date.month >= int(row[1]) > sell_date.month:
                             remain_inflation.append(float(row[2].replace(",", ".")))
@@ -318,20 +322,29 @@ class DBQueries:
                         if sell_date.year >= int(row[0]) > buy_date.year and int(row[1]) == buy_date.month:
                             year_inflation.append(float(row[2].replace(",", ".")))
 
-        total_y = 1
+        total_y = 0
         for i in range(0, len(year_inflation)):
-            total_y = total_y * year_inflation[i]
-        total_y = (total_y / 10000 - 100) / 100
+            if i == 0:
+                total_y = year_inflation[i]
+            else:
+                total_y += ((year_inflation[i] - 100) / 100) * total_y
 
-        total_r = 0
-        sum_weight = 0
-        for i in range(1, len(remain_inflation)+1):
-            total_r = total_r + remain_inflation[i-1] * i
-            sum_weight = sum_weight + i
-        exp_avg = (total_r / sum_weight - 100) * len(remain_inflation) / 12 / 100
+        total_y = (total_y - 100) / 100
 
-        profit_after_inflation = profit - total_y * profit - (exp_avg * (profit - total_y * profit))
-        profit_after_inflation = round(profit_after_inflation, 2)
+        if remain_inflation != []:
+            total_r = 0
+            sum_weight = 0
+            for i in range(1, len(remain_inflation)+1):
+                total_r += remain_inflation[i-1] * i
+                sum_weight += i
+
+            exp_avg = total_r / 10000 / sum_weight * (len(remain_inflation) / 12) / 100
+
+            profit_after_inflation = profit + total_y * profit + (exp_avg * (profit + total_y * profit))
+            profit_after_inflation = round(profit_after_inflation, 2)
+        else:
+            profit_after_inflation = round(profit + total_y * profit, 2)
+            
         return profit_after_inflation
 
     def show_investment_records(self, name):
@@ -362,8 +375,8 @@ class DBQueries:
         cashinst = cashflow.Cashflow(connection)
         cash = cashinst.count_cash()
         for key, val in shares.items():
-            print(key, (35-len(key))*" ", val, "zł", (10-len(str(val)))*" ", round(val/involvement_sum*100, 2), "%")
-        print("Kapitał pracujący:", involvement_sum, "zł")
+            print(key, (35-len(key))*" ", round(val, 2), "zł", (10-len(str(val))+3)*" ", round(val/involvement_sum*100, 2), "%")
+        print("Kapitał pracujący:", round(involvement_sum, 2), "zł")
 
         if chart:
             categories = []

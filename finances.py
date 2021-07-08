@@ -77,6 +77,10 @@ while True:
             else:
                 print("Błędna liczba parametrów.")
 
+        elif user_input[0] == "categories":
+            for category in categories:
+                print(category)
+
         elif user_input[0] == "transactions":
             if len(user_input) == 2:
                 parameter = user_input[1]
@@ -121,6 +125,9 @@ while True:
         elif user_input[0] == "clear" and user_input[1] == "budget":
             if len(user_input) == 2:
                 ef.append_to_budget_results()
+
+        elif user_input[0] == "reset" and user_input[1] == "budget":
+            ef.reset_budget()
 
         elif user_input[0] == "chart":
             if len(user_input) == 2:
@@ -175,7 +182,7 @@ while True:
             print("Błędne polecenie.")
 
     elif len(argv) == 2 and argv[1] == "investments":
-        finances_downloads.get_inflation_stats()
+        #finances_downloads.get_inflation_stats()
         db_queries = invdb.DBQueries(connection)
         mode = input("Wpisz polecenie: ")
 

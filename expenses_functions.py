@@ -5,14 +5,13 @@ import re
 from sqlite3 import Error
 
 
-categories = ("samochód", "ubrania", "uroczystości/prezenty", "rachunki", "wieś", "rower", "rozrywka", "kot",
-              "nauka", "kosmetyki", "RTV/AGD", "jedzenie/picie", "leki", "Kościół", "alkohol", "zgubienie/utrata",
-              "wierzytelność", "dom", "zdrowie", "darowizna", "sport", "komputer", "inne")
-
 class DatabaseActions:
 
     def __init__(self, connection):
         self.connection = connection
+        self.categories = ("samochód", "ubrania", "uroczystości/prezenty", "rachunki", "wieś", "rower", "rozrywka", "kot",
+                            "nauka", "kosmetyki", "RTV/AGD", "jedzenie/picie", "leki", "Kościół", "alkohol", "zgubienie/utrata",
+                            "wierzytelność", "dom", "zdrowie", "darowizna", "sport", "komputer", "inne")
 
     def show_transactions_by_date(self, parameter="all"):
 
@@ -405,6 +404,32 @@ def append_to_budget_results():
         csv_writer.writerow(append_list)
 
     print("Budżet został rozliczony.")
+
+def reset_budget():
+    warning = input("Zapisane wydatki zostaną usunięte. Czy chcesz kontynuować (y/n)? ")
+    if warning != "y":
+        return
+
+    with open("budget.csv", "r") as fo:
+        csv_reader = list(csv.reader(fo, delimiter=";"))
+
+    new_budget = []
+    for i, row in enumerate(csv_reader):
+        if row[0] == "":
+            break
+        if i > 0: 
+            new_budget.append([row[0], row[1], row[2], "0.0", row[2]])
+
+    new_budget = [["przedmiot", "kategoria", "budżet", "koszt", "zostało"]] + new_budget
+
+    with open("budget.csv", "w") as fo:
+        csv_writer = csv.writer(fo, delimiter=";")
+        csv_writer.writerows(new_budget)
+
+    print("Budżet został wyzerowany.")
+
+
+
 
 
 

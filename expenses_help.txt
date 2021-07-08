@@ -1,0 +1,24 @@
+add - uruchamia proces dodawania pozycji do budżetu i zapisywania wydatku w bazie danych
+q - kończy działanie programu
+budget - wyświetla aktualny budżet
+budget results - wyświetla wyniki budżetów z poprzednich miesięcy
+budget results <parametr> - wyświetla wykres liniowy wybranego parametru wyników budżetu w czasie
+clear budget - rozlicza budżet i zapisuje jego wyniki
+transactions - wyświetla wszystkie transakcje zapisane w bazie danych
+transactions <int> - wyświetla transakcje z liczby ostatnich dni określanej przez parametr
+update <id> <nazwa kolumny> - umożliwia aktualizację wybranego pola rekordu bazy danych
+delete <id> - kasuje rekord bazy danych o wskazanym numerze id
+<kategoria wydatku> - wyświetla wszystkie transakcje z wybranej kategorii
+backup - tworzy kopię zapasową bazy danych w lokalizacji /home/j/backup/backup_expenses.db
+find - uruchamia proces wyszukiwania transakcji po nazwie przedmiotu
+find <id> - wyszukuje transakcję po numerze id
+chart <kategoria wydatku> - wyświetla wykres liniowy wydatków dla wybranej kategorii
+chart <kategoria wydatku> scatter - wyświetla wykres punktowy wraz z linią trendu dla wybranej kategorii
+claims - uruchamia podprogram obsługujący bazę danych z wierzytelnościami
+    add - uruchamia proces dodawania wierzytelności
+    update - uruchamia proces aktualizowania wierzytelności
+    delete - uruchamia proces anulowania wierzytelności
+    show - wyświetla wszystkie wierzytelności
+    saldo - oblicza i wyświetla saldo wierzytelności
+    
+

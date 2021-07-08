@@ -1,0 +1,6 @@
+add - uruchamia proces dodawania wierzytelności
+update - uruchamia proces aktualizowania wierzytelności
+delete - uruchamia proces anulowania wierzytelności
+show - wyświetla wszystkie wierzytelności
+saldo - oblicza i wyświetla saldo wierzytelności
+

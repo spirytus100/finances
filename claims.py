@@ -19,7 +19,7 @@ class Claim:
         sql_select = "SELECT rowid, date, item, cost FROM claims"
         cursor = connection.execute(sql_select)
         for row in cursor:
-            print(row[0], row[1], row[2])
+            print(row[0], row[1], row[2], row[3], "zł")
 
     def delete_claim(self, idnum):
         question = input("Czy na pewno usunąć pozycję o numerze id "+idnum+" ? ")

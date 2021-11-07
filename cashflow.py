@@ -1,4 +1,5 @@
 import datetime
+import texttable
 
 
 class Cashflow:
@@ -113,7 +114,7 @@ class Cashflow:
                 cursor = connection.execute(sql_select, (datefrom,))
 
         for row in cursor:
-            print(row[0], row[1], row[2], row[3], row[4])
+            print(row[0], row[1], row[2], (40-len(row[2]))*" ", row[3], (20-len(row[3]))*" ", row[4])
 
     def count_balance(self):
         connection = self.connection
@@ -164,11 +165,16 @@ class Cashflow:
                 avg_growth_perc = round(sum(growth_perc) / len(growth_perc), 2)
             else:
                 avg_growth_perc = 0.0
-            year_dict[year] = (sum(months_list), avg_growth_abs, avg_growth_perc)
+            year_dict[year] = (round(sum(months_list), 2), avg_growth_abs, avg_growth_perc)
 
         year_tuples = sorted(year_dict.items())
+        table_list = [["rok", "suma", "śr. wzrost abs.", "śr. wzrost %"]]
         for t in year_tuples:
-            print(t[0], t[1][0], t[1][1], t[1][2])
+            table_list.append([t[0], t[1][0], t[1][1], t[1][2]])
+
+        year_table = texttable.Texttable(max_width=0)
+        year_table.add_rows(table_list)
+        print(year_table.draw())
 
 
 

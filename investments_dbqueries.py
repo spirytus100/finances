@@ -124,15 +124,15 @@ class DBQueries:
 
     def find_investments_by_category(self, category, all=False):
         connection = self.connection
-        if not all:
+        if all:
             sql_select = "SELECT rowid, name, buy_date, amount, buy_price FROM investments WHERE category = ?"
             values = (category,)
         else:
-            sql_select = "SELECT rowid, name FROM investments WHERE category = ? AND is_over = ?"
-            values = (category, 1)
+            sql_select = "SELECT rowid, name, buy_date, amount, buy_price FROM investments WHERE category = ? AND is_over = ?"
+            values = (category, 0)
         cursor = connection.execute(sql_select, values)
         #if cursor:
-        print("Niezakończone inwestycje z kategorii " + category +":")
+        print("Trwające inwestycje z kategorii " + category +":")
         headers = [["id", "nazwa", "data kupna", "ilość", "cena"]]
         inv_list = headers + list(cursor)
         inv_table = texttable.Texttable(max_width=0)
@@ -375,7 +375,7 @@ class DBQueries:
         cashinst = cashflow.Cashflow(connection)
         cash = cashinst.count_cash()
         for key, val in shares.items():
-            print(key, (35-len(key))*" ", round(val, 2), "zł", (10-len(str(val))+3)*" ", round(val/involvement_sum*100, 2), "%")
+            print(key, (35-len(key))*" ", round(val, 2), "zł", (10-len(str(round(val, 2))))*" ", round(val/involvement_sum*100, 2), "%")
         print("Kapitał pracujący:", round(involvement_sum, 2), "zł")
 
         if chart:

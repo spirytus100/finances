@@ -1,11 +1,12 @@
 import sqlite3
 import expenses_functions as ef
-import claims
+from claims import Claim
 import investments
 import investments_dbqueries as invdb
 from cashflow import Cashflow
 from sys import argv
 import finances_downloads
+from retirement import Retirement
 
 
 # todo funkcja sprawdzająca upływający termin inwestycji (obligacji)
@@ -85,7 +86,7 @@ while True:
             if len(user_input) == 2:
                 parameter = user_input[1]
                 db_actions.show_transactions_by_date(parameter)
-            elif user_input == 1:
+            elif len(user_input) == 1:
                 db_actions.show_transactions_by_date()
             else:
                 print("Błędna liczba parametrów.")
@@ -153,7 +154,7 @@ while True:
             print("Błędne polecenie.")
 
     elif len(argv) == 2 and argv[1] == "claims":
-        claim = claims.Claim(connection)
+        claim = Claim(connection)
         mode = input("Wpisz polecenie: ")
         if mode == "q":
             print("Dziękuję za skorzystanie z programu.")
@@ -335,6 +336,35 @@ while True:
             elif mode[0] == "show":
                 parameter = mode[1]
                 savings.print_positions(parameter=parameter)
+
+    elif len(argv) == 2 and argv[1] == "retirement":
+        retire = Retirement(connection)
+        mode = input("Wpisz polecenie: ")
+        if mode == "q":
+            print("Dziękuję za skorzystanie z programu.")
+            break
+
+        mode = mode.split()
+        if len(mode) == 1:
+            if mode[0] == "add":
+                retire.add_position()
+            elif mode[0] == "show":
+                retire.show_positions()
+            elif mode[0] == "count":
+                retire.count_balance()
+            elif mode[0] == "investments":
+                retire.show_investments(over=False)
+        elif len(mode) == 2:
+            if mode[0] == "delete":
+                idnum = mode[1]
+                retire.delete_position(idnum)
+            elif mode[0] == "investments" and mode[1] == "over":
+                retire.show_investments(over=True)
+        elif len(mode) == 3:
+            if mode[0] == "update":
+                idnum = mode[1]
+                column = mode[2]
+                retire.update_position(idnum, column)
 
     else:
         print("Błędne polecenie.")

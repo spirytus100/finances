@@ -4,6 +4,7 @@ import requests
 import sqlite3
 import csv
 import os
+import texttable
 
 
 def get_stooq_quote(url, htmlid):
@@ -13,7 +14,12 @@ def get_stooq_quote(url, htmlid):
     try:
         quote = float(soup.text)
     except ValueError:
-        return False
+        try:
+            quote = float(soup.text.replace(",", "."))
+        except ValueError:
+            return False
+        else:
+            return quote
     else:
         return quote
 
@@ -21,25 +27,28 @@ def get_quotes():
     webcontent = {
         "Medicalgorythmics": ("https://stooq.pl/q/?s=mdg", "aq_mdg_c2"),
         "Enea": ("https://stooq.pl/q/?s=ena", "aq_ena_c3"),
-        "BETAW20TR": ("https://stooq.pl/q/?s=betaw20tr.pl", "aq_betaw20tr.pl_c3"),
+        "BETAW20TR": ("https://stooq.pl/q/?s=etfbw20tr.pl", "aq_etfbw20tr.pl_c2"),
         "PKO BP": ("https://stooq.pl/q/?s=pko", "aq_pko_c2"),
         "Orlen": ("https://stooq.pl/q/?s=pkn", "aq_pkn_c2"),
         "Pszenica": ("https://stooq.pl/q/?s=zw.f", "aq_zw.f_c2"),
-        "Srebro": ("https://stooq.pl/q/?s=xagusd", "aq_xagusd_c4"),
-        "iShares EURO STOXX Banks 30-15 UCITS": ("https://stooq.pl/q/?s=fa.f", "aq_fa.f_cl"),
+        "Srebro": ("https://nl.investing.com/etfs/etfs-physical-silver-de", "last_last"),
+        "iShares EURO STOXX Banks 30-15 UCITS": ("https://stooq.pl/q/?s=fa.f", "aq_fa.f_c1"),
         "E-car LN ETF": ("https://stooq.pl/q/?s=ecar.uk", "aq_ecar.uk_c4"),
     }
     connection = sqlite3.connect("finances.db", detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     sql_select = "SELECT amount, buy_price, buy_comission FROM investments WHERE name = ?"
 
+    asset_list = [["aktywo", "kupno", "cena akt.", "zysk", "zysk %"]]
+
     start_price = None
+    print("Trwa pobieranie danych...")
     for key, val in webcontent.items():
         if key == "Pszenica":
             name = "ETFS Euro Daily Hedged Wheat"
             start_price = 456.25
         elif key == "Srebro":
             name = "VZLC GR ETF"
-            start_price = 29.04*4.49
+            #start_price = 29.04
         else:
             name = key
         cursor = connection.execute(sql_select, (name,))
@@ -50,13 +59,22 @@ def get_quotes():
                 perc_profit = ((quote * record[0] - record[2]) - (record[0] * record[1] + record[2])) / (
                             record[0] * record[1] + record[2]) * 100
                 if start_price is not None:
-                    quote_diff = round(quote - start_price, 2)
+                    if key == "Srebro":
+                        quote_diff = round(quote * 4.52 - record[1], 2)
+                    else:
+                        quote_diff = round(quote - start_price, 2)
                 else:
                     quote_diff = round(quote - record[1], 2)
-                print(key, record[1], quote, quote_diff, str(round(perc_profit, 2)) + "%")
+                #print(key, record[1], quote, quote_diff, str(round(perc_profit, 2)) + "%")
+                asset_list.append([key, record[1], quote, quote_diff, str(round(perc_profit, 2))])
 
             else:
-                print("Nie można pobrać danych dla instrumentu", key)
+                #print("Nie można pobrać danych dla instrumentu", key)
+                asset_list.append([key, None, None, None, None])
+
+    asset_table = texttable.Texttable(max_width=0)
+    asset_table.add_rows(asset_list)
+    print(asset_table.draw())
 
 def get_inflation_stats():
     year = datetime.datetime.now().year

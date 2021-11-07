@@ -1,8 +1,10 @@
-import csv
+import csv, os
 from datetime import datetime, timedelta, date
 import matplotlib.pyplot as plt
 import re
 from sqlite3 import Error
+import texttable
+import shutil
 
 
 class DatabaseActions:
@@ -309,7 +311,7 @@ def show_budget():
             elif row[0] == "":
                 print("\nWydatki nieprzewidziane:")
             else:
-                print(row[0], space1, row[1], space2, row[2], space3, row[3], space4, row[4])
+                print(row[0], space1, row[1], space2, row[2], space3, row[3], space4, round(float(row[4]), 2))
 
         print(83 * "-")
         print(31 * " ", "suma", (22 - 4) * " ", str(round(budget_sum, 2)), (8 - len(str(round(budget_sum, 2)))) * " ", str(round(cost_sum, 2)),
@@ -325,11 +327,12 @@ def read_budget_results(parameter=None):
 
     with open("monthly_budget_results.csv", "r") as fo:
         fieldnames = ["data", "budżet", "wydane", "przekroczenie", "niezaplanowane"]
-        csv_reader = csv.DictReader(fo, fieldnames=fieldnames, delimiter=";")
+        csv_reader = list(csv.DictReader(fo, fieldnames=fieldnames, delimiter=";"))
         budget_sum = 0.0
         cost_sum = 0.0
         exceeded = 0.0
         unplanned = 0.0
+        results_list = []
         i = 0
         for row in csv_reader:
             if parameter is not None:
@@ -340,13 +343,18 @@ def read_budget_results(parameter=None):
                 cost_sum = cost_sum + float(row["wydane"])
                 exceeded = exceeded + float(row["przekroczenie"])
                 unplanned = unplanned + float(row["niezaplanowane"])
-            print(row["data"], row["budżet"], row["wydane"], row["przekroczenie"], row["niezaplanowane"])
+            results_list.append([row["data"], row["budżet"], row["wydane"], row["przekroczenie"], row["niezaplanowane"]])
+
+    budgets_table = texttable.Texttable(max_width=0)
+    budgets_table.set_cols_dtype(["t", "t", "t", "t", "t"])
+    budgets_table.add_rows(results_list)
+    print(budgets_table.draw())
 
     print("\n")
-    print("Średni budżet:", round(budget_sum/i, 2))
-    print("Średnie wydatki:", round(cost_sum / i, 2))
-    print("Średnie przekroczenie budżetu:", round(exceeded / i, 2))
-    print("Średnie nieplanowane wydatki:", round(unplanned / i, 2))
+    print("Średni budżet:", (35-14)*" ", (round(budget_sum/i, 2)), "zł")
+    print("Średnie wydatki:", (35-16)* " ", round(cost_sum / i, 2), "zł")
+    print("Średnie przekroczenie budżetu:", (35-30)*" ", round(exceeded / i, 2), "zł")
+    print("Średnie nieplanowane wydatki:", (35-29)*" ", round(unplanned / i, 2), "zł")
 
     if parameter is not None:
         input_list, output_list = map(list, zip(*chart_list))
@@ -383,10 +391,10 @@ def append_to_budget_results():
     exceeded_cost = round(exceeded_cost, 2)
 
     print("Wyniki miesiąca:")
-    print("Budżet:", budget_sum)
-    print("Wydano:", cost_sum)
-    print("Przekroczenie:", exceeded)
-    print("Niezaplanowane:", exceeded_cost)
+    print("Budżet:", (20-7)*" ", budget_sum, "zł")
+    print("Wydano:", (20-7)*" ", cost_sum, "zł")
+    print("Przekroczenie:", (20-14)*" ", exceeded, "zł")
+    print("Niezaplanowane:", (20-15)*" ", exceeded_cost, "zł")
 
     question = input("Czy na pewno rozliczyć budżet? ")
     if question != "y":
@@ -402,6 +410,10 @@ def append_to_budget_results():
     with open("monthly_budget_results.csv", "a+", newline="") as fo:
         csv_writer = csv.writer(fo, delimiter=";")
         csv_writer.writerow(append_list)
+
+    finances = r"/home/j/PycharmProjects/finances/budgets"
+    dest_path = os.path.join(finances, "budget" + budget_date.replace(".", "_") + ".csv")
+    shutil.copy("budget.csv", dest_path)
 
     print("Budżet został rozliczony.")
 
